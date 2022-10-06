@@ -1,5 +1,4 @@
 
-
 resource "aws_iam_role" "gh-deployment-role" {
   name = "gh-deployment-role"
   assume_role_policy = jsonencode({
@@ -22,8 +21,6 @@ resource "aws_iam_role" "gh-deployment-role" {
   })
 }
 
-
-
 resource "aws_iam_role_policy" "gh-deployment-policy-state" {
   name = "github-deployment-policy-state"
   role = aws_iam_role.gh-deployment-role.id
@@ -34,21 +31,9 @@ resource "aws_iam_role_policy" "gh-deployment-policy-state" {
   })
 }
 
-# resource "aws_iam_role_policy_attachment" "state-attach" {
-#   role       = aws_iam_role.gh-deployment-role.name
-#   policy_arn = aws_iam_role_policy.gh-deployment-policy-state.arn
-# }
-
-
-
 resource "aws_iam_role_policy" "gh-deployment-policy-apply" {
   name = "github-deployment-policy-apply"
   role = aws_iam_role.gh-deployment-role.id
 
   policy = templatefile("./policies/apply.json.tftpl", {})
 }
-
-# resource "aws_iam_role_policy_attachment" "apply-attach" {
-#   role       = aws_iam_role.gh-deployment-role.name
-#   policy_arn = aws_iam_role_policy.gh-deployment-policy-apply.arn
-# }

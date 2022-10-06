@@ -1,0 +1,90 @@
+name: Terraform Checks
+on: pull_request
+env:
+  TERRAFORM_VERSION: "1.2.8"
+  AWS_DEFAULT_REGION: "us-east-1"
+permissions:
+  id-token: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  misspell:
+    name: misspell
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: misspell
+        uses: reviewdog/action-misspell@v1.12.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          locale: "US"
+          level: warning
+          filter_mode: file
+  terraform:
+    name: Terraform Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2.0.0
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::190281595713:role/gh-deployment-role
+          role-session-name: gh-deployment-role
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -recursive -check -diff
+      - name: Checkov Policies
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          quiet: true
+          framework: terraform
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+      - name: Terraform Security Scanner
+        id: tfsec
+        uses: reviewdog/action-tfsec@v1.15.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          level: warning
+      - name: Terraform Linter
+        id: tflint
+        uses: reviewdog/action-tflint@v1.17.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          level: warning
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Checkov Policies ⚙️\`${{ steps.checkov.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Security Scanner 🤖\`${{ steps.tfsec.outcome }}\`
+            #### Terraform Linter 🤖\`${{ steps.tflint.outcome }}\`
+            <details><summary>Validation Output</summary>
+
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })

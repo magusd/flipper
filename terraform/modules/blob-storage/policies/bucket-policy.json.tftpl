@@ -1,0 +1,21 @@
+{
+    "Id": "Policy1665072030835",
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1665072026910",
+            "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+                "s3:PutObjectTagging"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:s3:::${bucket_name}/*",
+            "Principal": {
+                "AWS": [
+                    "${role_name}"
+                ]
+            }
+        }
+    ]
+}
