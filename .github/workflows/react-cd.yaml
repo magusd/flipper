@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -41,7 +41,7 @@ jobs:
         run: aws s3 sync --acl="public-read" ./build s3://app.flipper.magusd.com
 
       - name: Notify
-        run: aws sns publish --topic-arn "arn:aws:sns:us-east-2:190281595713:react-app-deploy-notifications" --message "New code deployed"
+        run: aws sns publish --topic-arn "arn:aws:sns:us-east-2:190281595713:react-app-deploy-notifications" --message "New code deployed ${GITHUB_REF#refs/heads/}"
       - name: Notify failed
         if: ${{ failure() }}
         run: aws sns publish --topic-arn "arn:aws:sns:us-east-2:190281595713:react-app-deploy-notifications" --message "Deploy failed"

@@ -1,11 +1,10 @@
-name: Terraform Checks
-on: pull_request
-env:
-  TERRAFORM_VERSION: "1.2.8"
-  AWS_DEFAULT_REGION: "us-east-1"
+name: Terraform CI/CD
+on:
+  push:
+    branches:
+      - master
 permissions:
   id-token: write
-  pull-requests: write
   contents: read
 
 jobs:
@@ -22,7 +21,12 @@ jobs:
           level: warning
           filter_mode: file
   terraform:
-    name: Terraform Checks
+    strategy:
+      max-parallel: 4
+      matrix:
+        workspace: ["1-project", "2-web-app"]
+
+    name: Terraform Plan & Apply
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -37,19 +41,14 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -recursive -check -diff
-      - name: Checkov Policies
-        id: checkov
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: .
-          quiet: true
-          framework: terraform
       - name: Terraform Init
         id: init
         run: terraform init
+        working-directory: ./terraform/${{ matrix.workspace }}
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+        working-directory: ./terraform/${{ matrix.workspace }}
       - name: Terraform Security Scanner
         id: tfsec
         uses: reviewdog/action-tfsec@v1.15.0
@@ -62,29 +61,10 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           level: warning
-      - uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Checkov Policies ⚙️\`${{ steps.checkov.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            #### Terraform Security Scanner 🤖\`${{ steps.tfsec.outcome }}\`
-            #### Terraform Linter 🤖\`${{ steps.tflint.outcome }}\`
-            <details><summary>Validation Output</summary>
-
-            \`\`\`\n
-            ${{ steps.validate.outputs.stdout }}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
+        working-directory: ./terraform/${{ matrix.workspace }}
