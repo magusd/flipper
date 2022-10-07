@@ -2,17 +2,18 @@ name: React CI/CD
 
 on:
   push:
-    branches: [master, main]
+    branches:
+      - master
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-region: us-east-1
+          aws-region: us-east-2
           role-to-assume: arn:aws:iam::190281595713:role/gh-deployment-role
           role-session-name: gh-deployment-role
       - name: Checkout repository
