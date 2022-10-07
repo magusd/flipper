@@ -1,0 +1,42 @@
+name: React CI/CD
+
+on:
+  push:
+    branches: [master, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::190281595713:role/gh-deployment-role
+          role-session-name: gh-deployment-role
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run the tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy
+        run: aws s3 sync --acl="public-read" ./build s3://app.flipper.magusd.com
+
+      - name: Notify
+        run: aws sns publish --topic-arn "arn:aws:sns:us-east-2:190281595713:react-app-deploy-notifications" --message "New code deployed"
+      - name: Notify failed
+        if: ${{ failure() }}
+        run: aws sns publish --topic-arn "arn:aws:sns:us-east-2:190281595713:react-app-deploy-notifications" --message "Deploy failed"
