@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: "flipper"
+spec:
+  type: service
+  owner: user:magusd
+  lifecycle: experimental
