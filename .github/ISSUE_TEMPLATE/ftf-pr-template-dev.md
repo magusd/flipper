@@ -2,7 +2,7 @@
 name: ftf pr template dev
 about: Describe this issue template's purpose here.
 title: DEFAULT TITLE
-labels: ''
+labels: deep-review, urgent
 assignees: ''
 
 ---
