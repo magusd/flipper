@@ -1,10 +1,8 @@
 ---
-name: ftf pr template dev
-about: Describe this issue template's purpose here.
-title: DEFAULT TITLE
+name: "ftf pr template dev"
+about: "Describe this issue template's purpose here."
+title: "DEFAULT TITLE"
 labels: "deep-review", "urgent" 
-assignees: ''
-
 ---
 
 **URGENT_PR_REVIEW** -> Delete this line if your PR is **NOT** urgent
