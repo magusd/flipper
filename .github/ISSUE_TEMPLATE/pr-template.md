@@ -1,9 +1,9 @@
 ---
 name: pr template
 about: Describe this issue template's purpose here.
-title: ''
+title: "[URGENT]"
 labels: deep-review, urgent
-assignees: ''
+assignees: magusd
 
 ---
 
