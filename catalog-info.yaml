@@ -3,7 +3,7 @@ kind: Component
 metadata:
   name: "flipper"
   annotations:
-    github.com/project-slug: flipper-magusd
+    github.com/project-slug: magusd/flipper
 spec:
   type: service
   owner: user:magusd
