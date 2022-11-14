@@ -2,6 +2,8 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: "flipper"
+  annotations:
+    github.com/project-slug: flipper-magusd
 spec:
   type: service
   owner: user:magusd
