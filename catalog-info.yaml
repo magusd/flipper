@@ -4,6 +4,10 @@ metadata:
   name: "flipper"
   annotations:
     github.com/project-slug: magusd/flipper
+  links:
+    - url: https://github.com/magusd/
+      title: Author
+      icon: dashboard
 spec:
   type: service
   owner: user:magusd
