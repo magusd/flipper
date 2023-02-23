@@ -94,3 +94,4 @@ E-mail notifications using sns:
     - https://github.com/magusd/flipper/actions/workflows/terraform.yaml
     - multiple environments
     - OIDC auth
+ 
